@@ -99,4 +99,13 @@ contract PowerTokenGeneration {
             msg.sender.transfer(amount);
         }
     
+        //admin draw all the ETH out from the contract, this should be only done after refund period. 
+        function transferFunds() public{
+            require(msg.sender == beneficiaryAccount);
+            msg.sender.transfer(_weiRaised);
+            _weiRaised = 0;
+        }
+        
+    
+    
 }
