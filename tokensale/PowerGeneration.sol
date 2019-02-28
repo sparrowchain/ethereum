@@ -70,7 +70,11 @@ contract PowerTokenGeneration {
         function checkTokenBalance() public view returns(uint256){
             return _weiRaised.mul(_rate);
         }
-
+        
+        function getTotalRaised() public view returns(uint256){
+            return _weiRaised;
+        }
+    
         //Return number of POWER token with the Rate
         function getTokenAmount(uint256 weiAmount) internal view returns (uint256){
             return weiAmount.mul(_rate);
