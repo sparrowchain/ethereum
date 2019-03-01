@@ -33,7 +33,11 @@ contract PowerTokenGeneration {
         uint256 private _rate;
         uint256 private _weiRaised;
         
-        
+        //number of wei for one token
+        uint private oneTokenInWei = 10 ** 18; //1 eth
+
+        uint256 public minContributionAmount = 10 ** 17; // 0.1 ETH
+
         mapping (address => uint256) _escrow;
 
         PowerToken public token;
@@ -62,22 +66,28 @@ contract PowerTokenGeneration {
            }
 
         //Check balance of any contributor address
-        function checkBalance() public view returns(uint256){
+        function checkEthBalance() public view returns(uint256){
             return _escrow[msg.sender];
         }
 
-        //check how many POWER can be generated in the future
+        //Check token balance of any contributor address
         function checkTokenBalance() public view returns(uint256){
-            return _weiRaised.mul(_rate);
+            return getTokenAmount(_weiRaised);
+        }
+
+        //check how many POWER can be generated in the future
+        function checkTotalTokenBalance() public view returns(uint256){
+            //return _weiRaised.mul(_rate)/oneTokenInWei;
+            return getTokenAmount(_weiRaised);
         }
         
-        function getTotalRaised() public view returns(uint256){
+        function getTotalEthRaised() public view returns(uint256){
             return _weiRaised;
         }
     
         //Return number of POWER token with the Rate
         function getTokenAmount(uint256 weiAmount) internal view returns (uint256){
-            return weiAmount.mul(_rate);
+            return weiAmount.mul(_rate)/oneTokenInWei;
         }
         
         //Token buyer confirm and claim their POWER token
