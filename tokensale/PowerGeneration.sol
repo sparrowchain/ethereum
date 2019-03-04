@@ -32,7 +32,12 @@ contract PowerTokenGeneration {
         using SafeMath for uint256;
         uint256 private _rate;
         uint256 private _weiRaised;
-        
+        uint256 public startDate = now + 1 minutes;
+        uint256 public freezingDate = now + 30 minutes;
+        uint256 public refundDate = now + 1 hours;
+        uint256 public lockDate = now + 1.5 hours;
+
+
         //number of wei for one token
         uint private oneTokenInWei = 10 ** 18; //1 eth
 
@@ -46,7 +51,11 @@ contract PowerTokenGeneration {
         // Sparrow Address to keep the money
         address beneficiaryAccount;        
         
-           
+        //define events here
+        event TokenPurchase(address purchaser, uint256 amountInWei);
+   
+
+
         constructor (PowerToken _token,uint256 rate) public{
             require(rate>0);   
             token=_token;       
@@ -56,9 +65,12 @@ contract PowerTokenGeneration {
 
         //Token buyer contribute ETH in exchange of POWER        
         function contribute() external payable{
+            require(now > startDate && now < freezingDate);
+            require(msg.value > minContributionAmount);
             uint256 weiAmount = msg.value;
             _escrow[msg.sender] = _escrow[msg.sender].add(weiAmount);
             _weiRaised = _weiRaised.add(weiAmount);
+            emit TokenPurchase(msg.sender,weiAmount);
 
             //token.mint(address(this),tokens);
             //ethEscrow[msg.sender] = ethEscrow[msg.sender].add(weiAmount);
@@ -66,7 +78,7 @@ contract PowerTokenGeneration {
            }
 
         //Check balance of any contributor address
-        function checkEthBalance() public view returns(uint256){
+        function checkWeiBalance() public view returns(uint256){
             return _escrow[msg.sender];
         }
 
@@ -81,7 +93,7 @@ contract PowerTokenGeneration {
             return getTokenAmount(_weiRaised);
         }
         
-        function getTotalEthRaised() public view returns(uint256){
+        function getTotalWeiRaised() public view returns(uint256){
             return _weiRaised;
         }
     
@@ -93,6 +105,7 @@ contract PowerTokenGeneration {
         //Token buyer confirm and claim their POWER token
         function claimPowerToken() public{
             require(_escrow[msg.sender] > 0);
+            require(now > lockDate);
             uint256 weiAmount = _escrow[msg.sender];
             uint256 tokens = getTokenAmount(weiAmount);
             token.mint(msg.sender,tokens);
@@ -102,6 +115,7 @@ contract PowerTokenGeneration {
            
         //Token buyer claim refund
         function refund() public{
+            require(now > refundDate && now < lockDate);
             require(_escrow[msg.sender] > 0);
             uint amount = _escrow[msg.sender];
             _weiRaised = _weiRaised.sub(amount);
@@ -111,6 +125,7 @@ contract PowerTokenGeneration {
     
         //admin draw all the ETH out from the contract, this should be only done after refund period. 
         function transferFunds() public{
+            require(now > lockDate);
             require(msg.sender == beneficiaryAccount);
             msg.sender.transfer(_weiRaised);
             _weiRaised = 0;
