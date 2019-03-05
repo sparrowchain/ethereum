@@ -17,14 +17,11 @@ contract PowerToken is ERC20Detailed,ERC20,ERC20Mintable{
                 //_mint(msg.sender, _totalSupply);
     }
     
-    function mint(address to,uint256 value) public returns (bool){
+    function mint(address to,uint256 value) public onlyMinter returns (bool){
         _mint(to,value);
         return true;
     }
     
-    function myFunc() public returns(bool){
-        return true;
-    }
     
 }
 
@@ -32,7 +29,7 @@ contract PowerTokenGeneration {
         using SafeMath for uint256;
         uint256 private _rate;
         uint256 private _weiRaised;
-        uint256 public startDate = now + 1 minutes;
+        uint256 public startDate = now + 0 minutes;
         uint256 public freezingDate = now + 30 minutes;
         uint256 public refundDate = now + 1 hours;
         uint256 public lockDate = now + 1.5 hours;
@@ -84,7 +81,7 @@ contract PowerTokenGeneration {
 
         //Check token balance of any contributor address
         function checkTokenBalance() public view returns(uint256){
-            return getTokenAmount(_weiRaised);
+            return getTokenAmount(_escrow[msg.sender]);
         }
 
         //check how many POWER can be generated in the future
@@ -105,7 +102,7 @@ contract PowerTokenGeneration {
         //Token buyer confirm and claim their POWER token
         function claimPowerToken() public{
             require(_escrow[msg.sender] > 0);
-            require(now > lockDate);
+            //require(now > lockDate);
             uint256 weiAmount = _escrow[msg.sender];
             uint256 tokens = getTokenAmount(weiAmount);
             token.mint(msg.sender,tokens);
